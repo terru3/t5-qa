@@ -4,6 +4,6 @@ The following is a UCLA Math 156 (Machine Learning) Project for fine-tuning T5 (
 
 ## Introduction
 
-## How to Run Demo:
+## Running the Demo
 
-## Organization of Repo
+For points of contact, directly contact the authors of this repository.
