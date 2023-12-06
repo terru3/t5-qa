@@ -1,0 +1,9 @@
+datasets==2.14.6
+evaluate==0.4.1
+matplotlib==3.5.1
+numpy==1.26.1
+peft==0.6.0
+sentence-transformers==2.2.2
+torch==2.1.1
+tqdm==4.62.3
+transformers==4.27.4
