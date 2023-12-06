@@ -7,7 +7,9 @@ This repository contains a T5 (Text-to-Text Transfer Transformer) model fine-tun
 ## Setup
 
 Note: _requirements.txt_ is likely incorrect——torch 2 may be incompatible with sentence-transformers and you may need to downgrade.
+
 To load in the trained model for use, see _inference.py_.
+
 For points of contact, please directly contact the authors of this repository.
 
 ### Data Acknowledgements
