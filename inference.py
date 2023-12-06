@@ -13,16 +13,22 @@ set_seed()
 
 # Load model
 def load_model_and_tokenizer(path):
-  config = LoraConfig.from_pretrained(path)
-  model = AutoModelForQuestionAnswering.from_pretrained(config.base_model_name_or_path) # base_model will just smth like "t5-small"
-  model = PeftModel.from_pretrained(model, path)
-  tokenizer = AutoTokenizer.from_pretrained(config.base_model_name_or_path, use_fast=True)
-  model.to(device)
-  return model, tokenizer
+    config = LoraConfig.from_pretrained(path)
+    model = AutoModelForQuestionAnswering.from_pretrained(
+        config.base_model_name_or_path
+    )  # base_model will just smth like "t5-small"
+    model = PeftModel.from_pretrained(model, path)
+    tokenizer = AutoTokenizer.from_pretrained(
+        config.base_model_name_or_path, use_fast=True
+    )
+    model.to(device)
+    return model, tokenizer
 
-model, tokenizer = load_model_and_tokenizer(f'{PATH}/t5-squad-tuned')
+
+model, tokenizer = load_model_and_tokenizer(f"{PATH}/t5-squad-tuned")
 
 ## Inference
+
 
 def predict(model, tokenizer, question, context):
     """
@@ -42,27 +48,36 @@ def predict(model, tokenizer, question, context):
     """
 
     # Tokenize the question and context
-    input = tokenizer(question, context,
-          max_length=SEQ_LENGTH,
-          truncation="only_second",
-          padding="max_length"
-          )
+    input = tokenizer(
+        question,
+        context,
+        max_length=SEQ_LENGTH,
+        truncation="only_second",
+        padding="max_length",
+    )
 
     # convert from native Python lists to tensors
     # also add a dimension since we are not feeding in a batch but model expects extra batch dim
     for key in input:
-      input[key] = torch.tensor(input[key], dtype=torch.int64).unsqueeze(0)
+        input[key] = torch.tensor(input[key], dtype=torch.int64).unsqueeze(0)
 
     # convert sequence_ids to tensors and add new dim as well, assign to new attribute
-    input['sequence_ids'] = torch.tensor(np.array(input.sequence_ids(), dtype=float)).unsqueeze(0)
+    input["sequence_ids"] = torch.tensor(
+        np.array(input.sequence_ids(), dtype=float)
+    ).unsqueeze(0)
 
     model.eval()
     with torch.no_grad():
-        inference_output = model(input['input_ids'].to(device),
-                                attention_mask=input['attention_mask'].to(device))
-    pred = postprocess(input, inference_output, inference=True)[0] # extract from list of length 1 cause we only feed it one example
+        inference_output = model(
+            input["input_ids"].to(device),
+            attention_mask=input["attention_mask"].to(device),
+        )
+    pred = postprocess(input, inference_output, inference=True)[
+        0
+    ]  # extract from list of length 1 cause we only feed it one example
 
     return pred
+
 
 #### Test case 1:
 
@@ -122,7 +137,9 @@ print(f"Question: {question} \n\n Context: {context[:100]}... \n\n Prediction: {
 
 ### Test case 5:
 
-question = "Which electives from the Statistics department can an Applied Math major take?"
+question = (
+    "Which electives from the Statistics department can an Applied Math major take?"
+)
 context = "Required: Mathematics 31A or 31AL, 31B, 32A, 32B, 33A, 33B, Physics 1A, 1B, Program in Computing 10A, and one course \
 from Chemistry and Biochemistry 20A, 20B, Physics 1C. \n\n Required: Mathematics 115A, 131A, either 131B or 132, 142; two two-term \
 sequences from two of the following categories: numerical analysis—courses 151A and 151B, probability and statistics—courses 170A and 170B, \

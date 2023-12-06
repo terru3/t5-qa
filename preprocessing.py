@@ -23,6 +23,7 @@ tokenizer = AutoTokenizer.from_pretrained("t5-small", use_fast=True)
 #### Goal: Tokenize question+context, find start and end token positions of answer, delete unnecessary features
 # Instead of character indices, we want the token indices where the answer starts and ends (e.g. (38, 41) => answer string is the 38th to 41th tokens (inclusive))
 
+
 def tokenize_preprocess(examples):
     """
     This function tokenizes question-context pairs and obtains the start and end token indices of the answers.
@@ -46,7 +47,7 @@ def tokenize_preprocess(examples):
         questions,
         examples["context"],
         max_length=SEQ_LENGTH,
-        truncation="only_second", # only truncate the context not the question.
+        truncation="only_second",  # only truncate the context not the question.
         padding="max_length",
     )
 
@@ -58,9 +59,9 @@ def tokenize_preprocess(examples):
 
         # obtain end character indices
         answer = answers[i]
-        answer_str = answer['text'][0]
+        answer_str = answer["text"][0]
 
-        start_idx = answer['answer_start'][0]
+        start_idx = answer["answer_start"][0]
         end_idx = start_idx + len(answer_str)
 
         # Rather than raw start and end character indices, we need the start and end TOKEN indices
@@ -69,7 +70,7 @@ def tokenize_preprocess(examples):
         # We use char_to_token with sequence_index=1, so that we look
         # only at the second string (the context paragraph)
         start_token = inputs.char_to_token(i, start_idx, sequence_index=1)
-        end_token = inputs.char_to_token(i, end_idx-1, sequence_index=1)
+        end_token = inputs.char_to_token(i, end_idx - 1, sequence_index=1)
 
         # if char_to_token outputs None, then that token was actually truncated by tokenization earlier
         # so we set to max token length
@@ -82,7 +83,7 @@ def tokenize_preprocess(examples):
         end_token_list.append(end_token)
 
     # append sequence_ids from tokenization, necessary for post-processing
-    map_batch_size = len(inputs['input_ids'])
+    map_batch_size = len(inputs["input_ids"])
     seq_ids = [inputs.sequence_ids(i) for i in range(map_batch_size)]
 
     inputs["start_positions"] = start_token_list
@@ -91,20 +92,21 @@ def tokenize_preprocess(examples):
 
     return inputs
 
+
 # Map preprocessing function to the dataset (approx 2.5 minutes)
-tokenized_squad = squad.map(tokenize_preprocess,
-                                batched=True,
-                                remove_columns=squad["train"].column_names)
+tokenized_squad = squad.map(
+    tokenize_preprocess, batched=True, remove_columns=squad["train"].column_names
+)
 
 # Format dataset to use tensors rather than native Python lists
-tokenized_squad = tokenized_squad.with_format('torch')
+tokenized_squad = tokenized_squad.with_format("torch")
 
 """## Dataloading"""
 
-train_dataloader = DataLoader(tokenized_squad['train'],
-                              shuffle=True,
-                              batch_size=BATCH_SIZE)
+train_dataloader = DataLoader(
+    tokenized_squad["train"], shuffle=True, batch_size=BATCH_SIZE
+)
 
-val_dataloader = DataLoader(tokenized_squad['test'],
-                            shuffle=True,
-                            batch_size=BATCH_SIZE)
+val_dataloader = DataLoader(
+    tokenized_squad["test"], shuffle=True, batch_size=BATCH_SIZE
+)
